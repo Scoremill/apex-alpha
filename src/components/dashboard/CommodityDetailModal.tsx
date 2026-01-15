@@ -140,6 +140,7 @@ export function CommodityDetailModal({
           });
 
           // Convert to array and filter for display (show more for longer timeframes)
+          // Sort in reverse chronological order (newest quarters first)
           const maxQuarters = fredTimeframe === '1Y' ? 4 : fredTimeframe === '5Y' ? 20 : fredTimeframe === '10Y' ? 40 : 100;
           const qKeys = Object.keys(byQuarter).sort().reverse().slice(0, maxQuarters);
 
@@ -155,7 +156,7 @@ export function CommodityDetailModal({
             });
           });
 
-          setQuarterlyPerf(quarterly);
+          setQuarterlyPerf(quarterly); // Quarters are in reverse chronological order (newest first)
         }
       }
     } catch (error) {
