@@ -67,14 +67,14 @@ const COMMODITIES: (Partial<CommodityData> & { symbol: string; category: string 
     source: 'FRED',
     fredSeriesId: 'WTISPLC'
   },
-  // Changed Steel to use FRED Source (WPU10170502)
+  // Changed Steel to use FRED Source (WPU1017)
   {
-    symbol: 'WPU10170502',
+    symbol: 'WPU1017',
     name: 'Producer Price Index: Steel Mill Products',
     displayName: 'Steel',
     category: 'Homebuilding',
     source: 'FRED',
-    fredSeriesId: 'WPU10170502'
+    fredSeriesId: 'WPU1017'
   },
   { symbol: 'CUT', name: 'Invesco MSCI Timber ETF', displayName: 'OSB/Studs', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'EXP', name: 'Eagle Materials', displayName: 'Gypsum (Drywall)', category: 'Homebuilding', source: 'YAHOO' },
