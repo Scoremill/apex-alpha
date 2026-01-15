@@ -49,7 +49,15 @@ const COMMODITIES: (Partial<CommodityData> & { symbol: string; category: string 
     source: 'FRED',
     fredSeriesId: 'WPS081'
   },
-  { symbol: 'AA', name: 'Alcoa Corp', displayName: 'Aluminum', category: 'Homebuilding', source: 'YAHOO' },
+  // Changed Aluminum to use FRED Source (PALUMUSDM)
+  {
+    symbol: 'PALUMUSDM',
+    name: 'Global Price of Aluminum',
+    displayName: 'Aluminum',
+    category: 'Homebuilding',
+    source: 'FRED',
+    fredSeriesId: 'PALUMUSDM'
+  },
   { symbol: 'USO', name: 'US Oil Fund', displayName: 'Oil (Gas)', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'X', name: 'United States Steel', displayName: 'Steel', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'CUT', name: 'Invesco MSCI Timber ETF', displayName: 'OSB/Studs', category: 'Homebuilding', source: 'YAHOO' },
