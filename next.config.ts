@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  env: {
+    FRED_API_KEY: process.env.FRED_API_KEY,
+  },
 };
 
 export default nextConfig;
