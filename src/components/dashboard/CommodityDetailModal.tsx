@@ -10,6 +10,7 @@ interface CommodityDetailModalProps {
   symbol: string;
   name: string;
   displayName: string;
+  source?: 'YAHOO' | 'FRED';
 }
 
 interface HistoricalData {
@@ -26,6 +27,15 @@ interface PeriodPerformance {
   changePercent: number;
   high: number;
   low: number;
+}
+
+interface QuarterlyPerformance {
+  quarter: string;
+  year: number;
+  startPrice: number;
+  endPrice: number;
+  change: number;
+  changePercent: number;
 }
 
 const TIME_PERIODS = [
@@ -46,17 +56,97 @@ export function CommodityDetailModal({
   symbol,
   name,
   displayName,
+  source = 'YAHOO',
 }: CommodityDetailModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
   const [performanceByPeriod, setPerformanceByPeriod] = useState<Record<string, PeriodPerformance | null>>({});
+  const [quarterlyPerf, setQuarterlyPerf] = useState<QuarterlyPerformance[]>([]);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen && symbol) {
-      fetchAllPeriods();
+      if (source === 'FRED') {
+        fetchFredData();
+      } else {
+        fetchAllPeriods();
+      }
     }
-  }, [isOpen, symbol]);
+  }, [isOpen, symbol, source]);
+
+  async function fetchFredData() {
+    setIsLoading(true);
+    try {
+      // Fetch 5 years of data for trends
+      const today = new Date();
+      const fiveYearsAgo = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate());
+
+      const response = await fetch(
+        `/api/fred-data?series_id=${symbol}&start_date=${fiveYearsAgo.toISOString().split('T')[0]}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const obs = data.observations || [];
+
+        if (obs.length > 0) {
+          const prices = obs.map((o: any) => parseFloat(o.value));
+          const dates = obs.map((o: any) => o.date);
+          const current = prices[prices.length - 1];
+
+          setCurrentPrice(current);
+          setHistoricalData({
+            dates,
+            prices,
+            highs: prices, // FRED only gives one value per period usually
+            lows: prices,
+          });
+
+          // Calculate Quarterly Trends
+          const quarterly: QuarterlyPerformance[] = [];
+
+          // Helper to get quarter from date
+          const getQuarter = (d: Date) => Math.floor(d.getMonth() / 3) + 1;
+
+          // Group by quarter
+          const byQuarter: Record<string, { start: number; end: number; year: number; q: number }> = {};
+
+          obs.forEach((o: any) => {
+            const date = new Date(o.date);
+            const key = `${date.getFullYear()}-Q${getQuarter(date)}`;
+            const price = parseFloat(o.value);
+
+            if (!byQuarter[key]) {
+              byQuarter[key] = { start: price, end: price, year: date.getFullYear(), q: getQuarter(date) };
+            } else {
+              byQuarter[key].end = price; // Update end price as we go
+            }
+          });
+
+          // Convert to array and filter for last 4-6 quarters
+          const qKeys = Object.keys(byQuarter).sort().reverse().slice(0, 5); // Last 5 quarters
+
+          qKeys.forEach(key => {
+            const q = byQuarter[key];
+            quarterly.push({
+              quarter: `Q${q.q}`,
+              year: q.year,
+              startPrice: q.start,
+              endPrice: q.end,
+              change: q.end - q.start,
+              changePercent: ((q.end - q.start) / q.start) * 100
+            });
+          });
+
+          setQuarterlyPerf(quarterly);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching FRED data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function fetchAllPeriods() {
     setIsLoading(true);
@@ -153,7 +243,7 @@ export function CommodityDetailModal({
     );
   };
 
-  const threeMonthPerf = performanceByPeriod['3m'];
+  const threeMonthPerf = performanceByPeriod['3m']; // Standard perf
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -163,7 +253,7 @@ export function CommodityDetailModal({
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900">
           <div>
             <h2 className="text-xl font-bold text-slate-100">{displayName}</h2>
-            <p className="text-sm text-slate-400">{symbol} - {name}</p>
+            <p className="text-sm text-slate-400">{symbol} - {name} {source === 'FRED' && '(Index)'}</p>
           </div>
           <button
             onClick={onClose}
@@ -177,9 +267,19 @@ export function CommodityDetailModal({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-3xl font-bold text-slate-100">
-                ${currentPrice?.toFixed(2) ?? '--'}
+                {source === 'FRED' ? '' : '$'}{currentPrice?.toFixed(2) ?? '--'}
               </p>
-              {threeMonthPerf && (
+              {/* Show Latest Quarter Change if FRED, else 3M */}
+              {source === 'FRED' && quarterlyPerf.length > 0 && (
+                <div className="flex items-center gap-2 mt-1">
+                  {getChangeIcon(quarterlyPerf[0].changePercent)}
+                  <span className={cn('text-lg font-semibold', getChangeColor(quarterlyPerf[0].changePercent))}>
+                    {quarterlyPerf[0].change >= 0 ? '+' : ''}{quarterlyPerf[0].change.toFixed(2)} ({formatPercent(quarterlyPerf[0].changePercent)})
+                  </span>
+                  <span className="text-sm text-slate-500">Latest Quarter ({quarterlyPerf[0].quarter} {quarterlyPerf[0].year})</span>
+                </div>
+              )}
+              {source !== 'FRED' && threeMonthPerf && (
                 <div className="flex items-center gap-2 mt-1">
                   {getChangeIcon(threeMonthPerf.changePercent)}
                   <span className={cn('text-lg font-semibold', getChangeColor(threeMonthPerf.changePercent))}>
@@ -194,7 +294,7 @@ export function CommodityDetailModal({
           <div className="bg-slate-800/50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <BarChart2 className="w-5 h-5 text-blue-500" />
-              <h3 className="font-semibold text-slate-100">Price History (3M)</h3>
+              <h3 className="font-semibold text-slate-100">Price History {source === 'FRED' ? '(5Y)' : '(3M)'}</h3>
             </div>
             {isLoading ? (
               <div className="h-[200px] flex items-center justify-center">
@@ -206,26 +306,50 @@ export function CommodityDetailModal({
           </div>
 
           <div className="bg-slate-800/50 rounded-lg p-4">
-            <h3 className="font-semibold text-slate-100 mb-3">Performance Summary</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {TIME_PERIODS.map((period) => {
-                const perf = performanceByPeriod[period.value];
-                return (
-                  <div key={period.value} className="flex items-center justify-between py-2 px-3 bg-slate-900/50 rounded-lg">
-                    <span className="text-slate-400 text-sm">{period.label}</span>
-                    <span className={cn(
-                      'font-medium text-sm',
-                      perf ? getChangeColor(perf.changePercent) : 'text-slate-500'
-                    )}>
-                      {perf ? formatPercent(perf.changePercent) : '--'}
+            <h3 className="font-semibold text-slate-100 mb-3">
+              {source === 'FRED' ? 'Quarterly Trends' : 'Performance Summary'}
+            </h3>
+
+            {source === 'FRED' ? (
+              <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-4 px-3 py-2 text-sm text-slate-500 font-medium">
+                  <span>Quarter</span>
+                  <span className="text-right">Start</span>
+                  <span className="text-right">End</span>
+                  <span className="text-right">Change</span>
+                </div>
+                {quarterlyPerf.map((qp) => (
+                  <div key={`${qp.year}-${qp.quarter}`} className="grid grid-cols-4 px-3 py-2 bg-slate-900/50 rounded-lg text-sm">
+                    <span className="text-slate-300">{qp.quarter} {qp.year}</span>
+                    <span className="text-right text-slate-400">{qp.startPrice.toFixed(2)}</span>
+                    <span className="text-right text-slate-400">{qp.endPrice.toFixed(2)}</span>
+                    <span className={cn("text-right font-medium", getChangeColor(qp.changePercent))}>
+                      {formatPercent(qp.changePercent)}
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {TIME_PERIODS.map((period) => {
+                  const perf = performanceByPeriod[period.value];
+                  return (
+                    <div key={period.value} className="flex items-center justify-between py-2 px-3 bg-slate-900/50 rounded-lg">
+                      <span className="text-slate-400 text-sm">{period.label}</span>
+                      <span className={cn(
+                        'font-medium text-sm',
+                        perf ? getChangeColor(perf.changePercent) : 'text-slate-500'
+                      )}>
+                        {perf ? formatPercent(perf.changePercent) : '--'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {threeMonthPerf && (
+          {source !== 'FRED' && threeMonthPerf && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-slate-800/50 rounded-lg p-4">
                 <p className="text-sm text-slate-400">Period Start</p>

@@ -15,72 +15,117 @@ interface CommodityData {
   high?: number;
   low?: number;
   volume?: string;
+  source?: 'YAHOO' | 'FRED';
+  fredSeriesId?: string;
 }
 
-const COMMODITIES = [
-  { symbol: 'GC=F', name: 'Gold Futures', displayName: 'Gold', category: 'Precious Metals' },
-  { symbol: 'SI=F', name: 'Silver Futures', displayName: 'Silver', category: 'Precious Metals' },
-  { symbol: 'PL=F', name: 'Platinum Futures', displayName: 'Platinum', category: 'Precious Metals' },
-  { symbol: 'PA=F', name: 'Palladium Futures', displayName: 'Palladium', category: 'Precious Metals' },
-  { symbol: 'CL=F', name: 'Crude Oil WTI', displayName: 'Crude Oil', category: 'Energy' },
-  { symbol: 'BZ=F', name: 'Brent Crude Oil', displayName: 'Brent', category: 'Energy' },
-  { symbol: 'NG=F', name: 'Natural Gas', displayName: 'Natural Gas', category: 'Energy' },
-  { symbol: 'HO=F', name: 'Heating Oil', displayName: 'Heating Oil', category: 'Energy' },
-  { symbol: 'RB=F', name: 'RBOB Gasoline', displayName: 'Gasoline', category: 'Energy' },
-  { symbol: 'ZC=F', name: 'Corn Futures', displayName: 'Corn', category: 'Agriculture' },
-  { symbol: 'ZW=F', name: 'Wheat Futures', displayName: 'Wheat', category: 'Agriculture' },
-  { symbol: 'ZS=F', name: 'Soybean Futures', displayName: 'Soybeans', category: 'Agriculture' },
-  { symbol: 'KC=F', name: 'Coffee Futures', displayName: 'Coffee', category: 'Agriculture' },
-  { symbol: 'SB=F', name: 'Sugar Futures', displayName: 'Sugar', category: 'Agriculture' },
-  { symbol: 'CC=F', name: 'Cocoa Futures', displayName: 'Cocoa', category: 'Agriculture' },
-  { symbol: 'CT=F', name: 'Cotton Futures', displayName: 'Cotton', category: 'Agriculture' },
-  { symbol: 'HG=F', name: 'Copper Futures', displayName: 'Copper', category: 'Industrial Metals' },
-  { symbol: 'ALI=F', name: 'Aluminum Futures', displayName: 'Aluminum', category: 'Industrial Metals' },
-  { symbol: 'LE=F', name: 'Live Cattle', displayName: 'Live Cattle', category: 'Livestock' },
-  { symbol: 'HE=F', name: 'Lean Hogs', displayName: 'Lean Hogs', category: 'Livestock' },
-  { symbol: 'WOOD', name: 'iShares Global Timber ETF', displayName: 'Lumber', category: 'Homebuilding' },
-  { symbol: 'AA', name: 'Alcoa Corp', displayName: 'Aluminum', category: 'Homebuilding' },
-  { symbol: 'USO', name: 'US Oil Fund', displayName: 'Oil (Gas)', category: 'Homebuilding' },
-  { symbol: 'X', name: 'United States Steel', displayName: 'Steel', category: 'Homebuilding' },
-  { symbol: 'CUT', name: 'Invesco MSCI Timber ETF', displayName: 'OSB/Studs', category: 'Homebuilding' },
-  { symbol: 'EXP', name: 'Eagle Materials', displayName: 'Gypsum (Drywall)', category: 'Homebuilding' },
-  { symbol: 'MLM', name: 'Martin Marietta', displayName: 'Concrete/Aggregates', category: 'Homebuilding' },
-  { symbol: 'SHW', name: 'Sherwin-Williams', displayName: 'Resin (Paint)', category: 'Homebuilding' },
-  { symbol: 'WY', name: 'Weyerhaeuser', displayName: 'Wood Products', category: 'Homebuilding' },
-  { symbol: 'BCC', name: 'Boise Cascade', displayName: 'Plywood/OSB', category: 'Homebuilding' },
+const COMMODITIES: (Partial<CommodityData> & { symbol: string; category: string })[] = [
+  { symbol: 'GC=F', name: 'Gold Futures', displayName: 'Gold', category: 'Precious Metals', source: 'YAHOO' },
+  { symbol: 'SI=F', name: 'Silver Futures', displayName: 'Silver', category: 'Precious Metals', source: 'YAHOO' },
+  { symbol: 'PL=F', name: 'Platinum Futures', displayName: 'Platinum', category: 'Precious Metals', source: 'YAHOO' },
+  { symbol: 'PA=F', name: 'Palladium Futures', displayName: 'Palladium', category: 'Precious Metals', source: 'YAHOO' },
+  { symbol: 'CL=F', name: 'Crude Oil WTI', displayName: 'Crude Oil', category: 'Energy', source: 'YAHOO' },
+  { symbol: 'BZ=F', name: 'Brent Crude Oil', displayName: 'Brent', category: 'Energy', source: 'YAHOO' },
+  { symbol: 'NG=F', name: 'Natural Gas', displayName: 'Natural Gas', category: 'Energy', source: 'YAHOO' },
+  { symbol: 'HO=F', name: 'Heating Oil', displayName: 'Heating Oil', category: 'Energy', source: 'YAHOO' },
+  { symbol: 'RB=F', name: 'RBOB Gasoline', displayName: 'Gasoline', category: 'Energy', source: 'YAHOO' },
+  { symbol: 'ZC=F', name: 'Corn Futures', displayName: 'Corn', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'ZW=F', name: 'Wheat Futures', displayName: 'Wheat', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'ZS=F', name: 'Soybean Futures', displayName: 'Soybeans', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'KC=F', name: 'Coffee Futures', displayName: 'Coffee', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'SB=F', name: 'Sugar Futures', displayName: 'Sugar', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'CC=F', name: 'Cocoa Futures', displayName: 'Cocoa', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'CT=F', name: 'Cotton Futures', displayName: 'Cotton', category: 'Agriculture', source: 'YAHOO' },
+  { symbol: 'HG=F', name: 'Copper Futures', displayName: 'Copper', category: 'Industrial Metals', source: 'YAHOO' },
+  { symbol: 'ALI=F', name: 'Aluminum Futures', displayName: 'Aluminum', category: 'Industrial Metals', source: 'YAHOO' },
+  { symbol: 'LE=F', name: 'Live Cattle', displayName: 'Live Cattle', category: 'Livestock', source: 'YAHOO' },
+  { symbol: 'HE=F', name: 'Lean Hogs', displayName: 'Lean Hogs', category: 'Livestock', source: 'YAHOO' },
+  // Changed Lumber to use FRED Source (WPS081)
+  {
+    symbol: 'WPS081',
+    name: 'Lumber & Wood Products Index',
+    displayName: 'Lumber',
+    category: 'Homebuilding',
+    source: 'FRED',
+    fredSeriesId: 'WPS081'
+  },
+  { symbol: 'AA', name: 'Alcoa Corp', displayName: 'Aluminum', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'USO', name: 'US Oil Fund', displayName: 'Oil (Gas)', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'X', name: 'United States Steel', displayName: 'Steel', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'CUT', name: 'Invesco MSCI Timber ETF', displayName: 'OSB/Studs', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'EXP', name: 'Eagle Materials', displayName: 'Gypsum (Drywall)', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'MLM', name: 'Martin Marietta', displayName: 'Concrete/Aggregates', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'SHW', name: 'Sherwin-Williams', displayName: 'Resin (Paint)', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'WY', name: 'Weyerhaeuser', displayName: 'Wood Products', category: 'Homebuilding', source: 'YAHOO' },
+  { symbol: 'BCC', name: 'Boise Cascade', displayName: 'Plywood/OSB', category: 'Homebuilding', source: 'YAHOO' },
 ];
 
 const CATEGORIES = ['Precious Metals', 'Energy', 'Agriculture', 'Industrial Metals', 'Livestock', 'Homebuilding'];
 
 export default function CommoditiesPage() {
-  const [commodities, setCommodities] = useState<(CommodityData & { category: string })[]>(
-    COMMODITIES.map((c) => ({ ...c, category: c.category }))
+  const [commodities, setCommodities] = useState<(CommodityData & { category: string; source?: string; fredSeriesId?: string })[]>(
+    COMMODITIES.map((c) => ({ ...c, category: c.category, source: c.source || 'YAHOO' } as any))
   );
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedCommodity, setSelectedCommodity] = useState<(CommodityData & { category: string }) | null>(null);
+  const [selectedCommodity, setSelectedCommodity] = useState<(CommodityData & { category: string; source?: string; fredSeriesId?: string }) | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const symbols = COMMODITIES.map((c) => c.symbol).join(',');
-        const response = await fetch(`/api/market-data?symbols=${symbols}`);
-        
-        if (response.ok) {
-          const marketData = await response.json();
-          
-          setCommodities(
-            COMMODITIES.map((c) => ({
-              ...c,
-              price: marketData[c.symbol]?.price,
-              change: marketData[c.symbol]?.change,
-              changePercent: marketData[c.symbol]?.changePercent,
-              high: marketData[c.symbol]?.high,
-              low: marketData[c.symbol]?.low,
-              volume: marketData[c.symbol]?.volume?.toLocaleString(),
-            }))
-          );
-        }
+        const yahooSymbols = COMMODITIES.filter(c => c.source === 'YAHOO' || !c.source).map((c) => c.symbol);
+        const fredItems = COMMODITIES.filter(c => c.source === 'FRED');
+
+        // Parallel fetch for Yahoo and FRED data
+        const [yahooResponse, ...fredResponses] = await Promise.all([
+          fetch(`/api/market-data?symbols=${yahooSymbols.join(',')}`),
+          ...fredItems.map(item => fetch(`/api/fred-data?series_id=${item.fredSeriesId}`))
+        ]);
+
+        const marketData = yahooResponse.ok ? await yahooResponse.json() : {};
+        const fredDataResults = await Promise.all(fredResponses.map(res => res.ok ? res.json() : null));
+
+        setCommodities(prev => prev.map(c => {
+          if (c.source === 'FRED' && c.fredSeriesId) {
+            // Find corresponding FRED data
+            const fredIndex = fredItems.findIndex(f => f.symbol === c.symbol);
+            const data = fredDataResults[fredIndex];
+
+            if (data && data.observations && data.observations.length >= 2) {
+              // FRED data is usually monthly. Get last two points for change.
+              const observations = data.observations;
+              const latest = observations[observations.length - 1];
+              const previous = observations[observations.length - 2];
+              const price = parseFloat(latest.value);
+              const prevPrice = parseFloat(previous.value);
+              const change = price - prevPrice;
+              const changePercent = (change / prevPrice) * 100;
+
+              return {
+                ...c,
+                price,
+                change,
+                changePercent,
+                high: Math.max(...observations.slice(-12).map((o: any) => parseFloat(o.value))), // 12-month high
+                low: Math.min(...observations.slice(-12).map((o: any) => parseFloat(o.value))),  // 12-month low
+                volume: 'N/A' // Indexes don't usually have volume
+              };
+            }
+            return c;
+          }
+
+          // Existing Yahoo Finance Logic
+          return {
+            ...c,
+            price: marketData[c.symbol]?.price,
+            change: marketData[c.symbol]?.change,
+            changePercent: marketData[c.symbol]?.changePercent,
+            high: marketData[c.symbol]?.high,
+            low: marketData[c.symbol]?.low,
+            volume: marketData[c.symbol]?.volume?.toLocaleString(),
+          };
+        }));
+
       } catch (error) {
         console.error('Error fetching commodity data:', error);
       } finally {
@@ -89,7 +134,7 @@ export default function CommoditiesPage() {
     }
 
     fetchData();
-    const interval = setInterval(fetchData, 60 * 1000);
+    const interval = setInterval(fetchData, 60 * 1000); // 1 min update (likely overkill for FRED but fine for Yahoo)
     return () => clearInterval(interval);
   }, []);
 
@@ -209,8 +254,8 @@ export default function CommoditiesPage() {
                                 commodity.changePercent !== undefined && commodity.changePercent > 0
                                   ? 'bg-green-500/10 text-green-500'
                                   : commodity.changePercent !== undefined && commodity.changePercent < 0
-                                  ? 'bg-red-500/10 text-red-500'
-                                  : 'bg-slate-700 text-slate-400'
+                                    ? 'bg-red-500/10 text-red-500'
+                                    : 'bg-slate-700 text-slate-400'
                               )}
                             >
                               {formatPercent(commodity.changePercent ?? 0)}
@@ -248,6 +293,7 @@ export default function CommoditiesPage() {
         symbol={selectedCommodity?.symbol ?? ''}
         name={selectedCommodity?.name ?? ''}
         displayName={selectedCommodity?.displayName ?? ''}
+        source={selectedCommodity?.source as 'YAHOO' | 'FRED' | undefined}
       />
     </div>
   );
