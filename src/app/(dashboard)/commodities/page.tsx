@@ -58,7 +58,15 @@ const COMMODITIES: (Partial<CommodityData> & { symbol: string; category: string 
     source: 'FRED',
     fredSeriesId: 'PALUMUSDM'
   },
-  { symbol: 'USO', name: 'US Oil Fund', displayName: 'Oil (Gas)', category: 'Homebuilding', source: 'YAHOO' },
+  // Changed Oil (Gas) to use FRED Source (WTISPLC)
+  {
+    symbol: 'WTISPLC',
+    name: 'Crude Oil Prices: West Texas Intermediate',
+    displayName: 'Oil (Gas)',
+    category: 'Homebuilding',
+    source: 'FRED',
+    fredSeriesId: 'WTISPLC'
+  },
   { symbol: 'X', name: 'United States Steel', displayName: 'Steel', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'CUT', name: 'Invesco MSCI Timber ETF', displayName: 'OSB/Studs', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'EXP', name: 'Eagle Materials', displayName: 'Gypsum (Drywall)', category: 'Homebuilding', source: 'YAHOO' },
