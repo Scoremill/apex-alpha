@@ -63,6 +63,7 @@ export function CommodityDetailModal({
   const [performanceByPeriod, setPerformanceByPeriod] = useState<Record<string, PeriodPerformance | null>>({});
   const [quarterlyPerf, setQuarterlyPerf] = useState<QuarterlyPerformance[]>([]);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [fredTimeframe, setFredTimeframe] = useState<'1Y' | '5Y' | '10Y' | 'MAX'>('5Y');
 
   useEffect(() => {
     if (isOpen && symbol) {
@@ -72,17 +73,32 @@ export function CommodityDetailModal({
         fetchAllPeriods();
       }
     }
-  }, [isOpen, symbol, source]);
+  }, [isOpen, symbol, source, fredTimeframe]);
 
   async function fetchFredData() {
     setIsLoading(true);
     try {
-      // Fetch 5 years of data for trends
+      // Calculate date range based on selected timeframe
       const today = new Date();
-      const fiveYearsAgo = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate());
+      let startDate: Date;
+
+      switch (fredTimeframe) {
+        case '1Y':
+          startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+          break;
+        case '5Y':
+          startDate = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate());
+          break;
+        case '10Y':
+          startDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate());
+          break;
+        case 'MAX':
+          startDate = new Date(1900, 0, 1); // Get all available data
+          break;
+      }
 
       const response = await fetch(
-        `/api/fred-data?series_id=${symbol}&start_date=${fiveYearsAgo.toISOString().split('T')[0]}`
+        `/api/fred-data?series_id=${symbol}&start_date=${startDate.toISOString().split('T')[0]}`
       );
 
       if (response.ok) {
@@ -123,8 +139,9 @@ export function CommodityDetailModal({
             }
           });
 
-          // Convert to array and filter for last 4-6 quarters
-          const qKeys = Object.keys(byQuarter).sort().reverse().slice(0, 5); // Last 5 quarters
+          // Convert to array and filter for display (show more for longer timeframes)
+          const maxQuarters = fredTimeframe === '1Y' ? 4 : fredTimeframe === '5Y' ? 20 : fredTimeframe === '10Y' ? 40 : 100;
+          const qKeys = Object.keys(byQuarter).sort().reverse().slice(0, maxQuarters);
 
           qKeys.forEach(key => {
             const q = byQuarter[key];
@@ -328,10 +345,30 @@ export function CommodityDetailModal({
             </div>
           </div>
 
+          {/* Timeframe Filter for FRED data */}
+          {source === 'FRED' && (
+            <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-lg p-1">
+              {(['1Y', '5Y', '10Y', 'MAX'] as const).map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => setFredTimeframe(tf)}
+                  className={cn(
+                    'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                    fredTimeframe === tf
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                  )}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="bg-slate-800/50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <BarChart2 className="w-5 h-5 text-blue-500" />
-              <h3 className="font-semibold text-slate-100">Price History {source === 'FRED' ? '(5Y)' : '(3M)'}</h3>
+              <h3 className="font-semibold text-slate-100">Price History {source === 'FRED' ? `(${fredTimeframe})` : '(3M)'}</h3>
             </div>
             {isLoading ? (
               <div className="h-[200px] flex items-center justify-center">
