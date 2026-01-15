@@ -38,9 +38,18 @@ export class FredClient {
             aggregation_method?: string;
         } = {}
     ): Promise<FredSeriesResponse> {
+        // Use the instance apiKey or fall back to process.env.FRED_API_KEY
+        // This ensures that even if the client was initialized before env vars were ready,
+        // it still tries to grab the key at runtime.
+        const apiKey = this.apiKey || process.env.FRED_API_KEY;
+
+        if (!apiKey) {
+            throw new Error('FRED_API_KEY is not defined');
+        }
+
         const searchParams = new URLSearchParams({
             series_id: seriesId,
-            api_key: this.apiKey,
+            api_key: apiKey,
             file_type: 'json',
         });
 
@@ -65,4 +74,5 @@ export class FredClient {
     }
 }
 
+// Initialize with empty string to rely on dynamic lookup if needed
 export const fredClient = new FredClient(process.env.FRED_API_KEY || '');
