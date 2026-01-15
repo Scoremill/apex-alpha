@@ -67,7 +67,15 @@ const COMMODITIES: (Partial<CommodityData> & { symbol: string; category: string 
     source: 'FRED',
     fredSeriesId: 'WTISPLC'
   },
-  { symbol: 'X', name: 'United States Steel', displayName: 'Steel', category: 'Homebuilding', source: 'YAHOO' },
+  // Changed Steel to use FRED Source (WPU10170502)
+  {
+    symbol: 'WPU10170502',
+    name: 'Producer Price Index: Steel Mill Products',
+    displayName: 'Steel',
+    category: 'Homebuilding',
+    source: 'FRED',
+    fredSeriesId: 'WPU10170502'
+  },
   { symbol: 'CUT', name: 'Invesco MSCI Timber ETF', displayName: 'OSB/Studs', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'EXP', name: 'Eagle Materials', displayName: 'Gypsum (Drywall)', category: 'Homebuilding', source: 'YAHOO' },
   { symbol: 'MLM', name: 'Martin Marietta', displayName: 'Concrete/Aggregates', category: 'Homebuilding', source: 'YAHOO' },
