@@ -207,6 +207,7 @@ export function CommodityDetailModal({
     }
 
     const prices = historicalData.prices;
+    const dates = historicalData.dates;
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const priceRange = maxPrice - minPrice || 1;
@@ -222,24 +223,58 @@ export function CommodityDetailModal({
 
     const areaPoints = `0,${chartHeight} ${points} ${chartWidth},${chartHeight}`;
 
+    // Generate quarter labels for FRED data (show every ~12 months)
+    const quarterLabels: { x: number; label: string }[] = [];
+    if (source === 'FRED' && dates.length > 0) {
+      const step = Math.floor(dates.length / 5); // Show ~5 labels
+      for (let i = 0; i < dates.length; i += step) {
+        const date = new Date(dates[i]);
+        const quarter = Math.floor(date.getMonth() / 3) + 1;
+        const year = date.getFullYear();
+        const x = (i / (dates.length - 1)) * chartWidth;
+        quarterLabels.push({ x, label: `Q${quarter} ${year}` });
+      }
+    }
+
     return (
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-[200px]">
-        <defs>
-          <linearGradient id={`gradient-${symbol}`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={strokeColor} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon points={areaPoints} fill={`url(#gradient-${symbol})`} />
-        <polyline
-          points={points}
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <div className="relative">
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 30}`} className="w-full h-[230px]">
+          <defs>
+            <linearGradient id={`gradient-${symbol}`} x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor={strokeColor} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <polygon points={areaPoints} fill={`url(#gradient-${symbol})`} />
+          <polyline
+            points={points}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Quarter labels for FRED data */}
+          {source === 'FRED' && quarterLabels.map((label, i) => (
+            <text
+              key={i}
+              x={label.x}
+              y={chartHeight + 20}
+              textAnchor="middle"
+              fill="#94a3b8"
+              fontSize="11"
+              fontFamily="system-ui"
+            >
+              {label.label}
+            </text>
+          ))}
+        </svg>
+        {source === 'FRED' && (
+          <div className="mt-2 text-xs text-slate-500 text-right">
+            Data Source: FRED-St Louis
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -253,7 +288,9 @@ export function CommodityDetailModal({
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900">
           <div>
             <h2 className="text-xl font-bold text-slate-100">{displayName}</h2>
-            <p className="text-sm text-slate-400">{symbol} - {name} {source === 'FRED' && '(Index)'}</p>
+            <p className="text-sm text-slate-400">
+              {symbol} - {name} {source === 'FRED' && '(FRED-St Louis Index)'}
+            </p>
           </div>
           <button
             onClick={onClose}

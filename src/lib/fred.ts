@@ -42,14 +42,22 @@ export class FredClient {
             series_id: seriesId,
             api_key: this.apiKey,
             file_type: 'json',
-            ...params,
         });
+
+        // Only add optional params if they have values
+        if (params.observation_start) searchParams.append('observation_start', params.observation_start);
+        if (params.observation_end) searchParams.append('observation_end', params.observation_end);
+        if (params.frequency) searchParams.append('frequency', params.frequency);
+        if (params.units) searchParams.append('units', params.units);
+        if (params.aggregation_method) searchParams.append('aggregation_method', params.aggregation_method);
 
         const response = await fetch(`${FRED_API_BASE}?${searchParams.toString()}`, {
             next: { revalidate: 3600 }, // Cache for 1 hour by default
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('FRED API Error:', response.status, errorText);
             throw new Error(`FRED API error: ${response.status} ${response.statusText}`);
         }
 
